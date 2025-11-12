@@ -10,24 +10,24 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // 🟢 Register
+    
     public function register(Request $request)
     {
+        logger($request->all());
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // 🔹 Créer l’utilisateur
+       
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        // 🔹 Ajouter le rôle “patient” automatiquement
-        // Assure-toi que le rôle "patient" existe dans ta table roles (créé avec Laratrust)
+       
         $user->addRole('patient');
 
         return response()->json([
@@ -36,7 +36,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // 🟢 Login
+    
     public function login(Request $request)
     {
         $request->validate([
@@ -53,7 +53,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // 🔹 Créer le token Sanctum
+        
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -63,7 +63,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // 🟢 Logout
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

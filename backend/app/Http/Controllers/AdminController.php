@@ -9,25 +9,21 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    // 🟢 GET infos admin connecté
+    
     public function profile(Request $request)
     {
         $admin = $request->user()->load('roles');
         return response()->json($admin);
     }
 
-    // ==========================================================
-    // 🩺 MÉDECINS
-    // ==========================================================
-
-    // 🟢 GET tous les médecins
+   
     public function getMedecins()
     {
-        $medecins = User::whereHas('roles', fn($q) => $q->where('name', 'medecin'))->get();
+        $medecins = User::role('medecin')->get(); 
         return response()->json($medecins);
     }
 
-    // 🟢 CREATE médecin
+ 
     public function createMedecin(Request $request)
     {
         $request->validate([
@@ -42,7 +38,8 @@ class AdminController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->attachRole('medecin');
+       
+        $user->assignRole('medecin');
 
         return response()->json(['message' => 'Médecin créé avec succès', 'user' => $user]);
     }
@@ -74,7 +71,7 @@ class AdminController extends Controller
     // 🟢 GET tous les patients
     public function getPatients()
     {
-        $patients = User::whereHas('roles', fn($q) => $q->where('name', 'patient'))->get();
+        $patients = User::role('patient')->get(); // ✅ simplifié aussi
         return response()->json($patients);
     }
 
@@ -93,7 +90,8 @@ class AdminController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->attachRole('patient');
+        // ✅ Spatie
+        $user->assignRole('patient');
 
         return response()->json(['message' => 'Patient créé avec succès', 'user' => $user]);
     }
