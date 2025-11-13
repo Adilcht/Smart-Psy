@@ -9,11 +9,14 @@ class RendezVous extends Model
 {
     use HasFactory;
 
+    // ✅ Correction ici
+    protected $table = 'rendez_vous';
+
     protected $fillable = [
         'patient_id',
         'medecin_id',
         'date',
-        'status', // "en attente", "confirmé", "annulé"
+        'status',
     ];
 
     public function patient()

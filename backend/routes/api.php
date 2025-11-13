@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // ROUTES MÉDECIN
 Route::middleware(['auth:sanctum', 'role:medecin'])->group(function () {
+      Route::get('/medecin/profile', [MedecinController::class, 'profile']);
     Route::get('/medecin/rendezvous', [MedecinController::class, 'mesRendezVous']);
     Route::put('/medecin/rendezvous/{id}/confirmer', [MedecinController::class, 'confirmer']);
     Route::put('/medecin/rendezvous/{id}/annuler', [MedecinController::class, 'annuler']);
@@ -43,6 +44,7 @@ Route::middleware(['auth:sanctum', 'role:medecin'])->group(function () {
 
 // ROUTES PATIENT
 Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {
+      Route::get('/patient/profile', [PatientController::class, 'profile']);
     Route::get('/patient/medecins', [PatientController::class, 'getMedecins']);
     Route::post('/patient/prendrerendezvous', [PatientController::class, 'prendreRendezVous']);
     Route::get('/patient/mesrendezvous', [PatientController::class, 'mesRendezVous']);
