@@ -6,24 +6,22 @@ function DashboardAdmin() {
   const [medecins, setMedecins] = useState([]);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Formulaires
   const [newMedecin, setNewMedecin] = useState({ name: "", email: "", password: "" });
   const [newPatient, setNewPatient] = useState({ name: "", email: "", password: "" });
 
-  const token = localStorage.getItem("token"); // stocke le token de l'admin connecté
+  const token = localStorage.getItem("token");
 
-  // Configuration axios
   const api = axios.create({
     baseURL: "http://127.0.0.1:8000/api",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: token ? `Bearer ${token}` : "" },
   });
 
-  // ===============================
-  // 🟢 Récupérer profil + données
-  // ===============================
   useEffect(() => {
+    if (!token) {
+      alert("❌ Token non trouvé. Connectez-vous !");
+      return;
+    }
     fetchAdmin();
     fetchMedecins();
     fetchPatients();
@@ -35,200 +33,120 @@ function DashboardAdmin() {
       setAdmin(res.data);
     } catch (err) {
       console.error(err);
+      alert("❌ Impossible de récupérer le profil admin");
     }
   };
 
   const fetchMedecins = async () => {
     try {
-      const res = await api.get("/admin/getmedecin");
+      const res = await api.get("/admin/medecins");
       setMedecins(res.data);
     } catch (err) {
       console.error(err);
+      alert("❌ Impossible de récupérer les médecins");
     }
   };
 
   const fetchPatients = async () => {
     try {
-      const res = await api.get("/admin/getpatient");
+      const res = await api.get("/admin/patients");
       setPatients(res.data);
     } catch (err) {
       console.error(err);
+      alert("❌ Impossible de récupérer les patients");
     }
   };
 
-  // ===============================
-  // 🩺 CRUD MÉDECINS
-  // ===============================
+  // Création, update, delete Médecin
   const createMedecin = async () => {
+    if (!newMedecin.name || !newMedecin.email || !newMedecin.password) return alert("⚠️ Tous les champs sont obligatoires");
     try {
       setLoading(true);
       await api.post("/admin/createmedecin", newMedecin);
-      fetchMedecins();
       setNewMedecin({ name: "", email: "", password: "" });
-      alert("✅ Médecin créé avec succès !");
-    } catch (err) {
-      alert("❌ Erreur création médecin");
-    } finally {
-      setLoading(false);
-    }
+      fetchMedecins();
+      alert("✅ Médecin créé !");
+    } catch (err) { console.error(err); alert("❌ Erreur"); } finally { setLoading(false); }
   };
 
   const updateMedecin = async (id, name, email) => {
-    try {
-      await api.put(`/admin/updatemedecin?id=${id}`, { name, email });
-      fetchMedecins();
-    } catch {
-      alert("❌ Erreur mise à jour médecin");
-    }
+    if (!name || !email) return;
+    try { await api.put(`/admin/updatemedecin/${id}`, { name, email }); fetchMedecins(); } catch (err) { console.error(err); }
   };
 
-  const deleteMedecin = async (id) => {
-    if (!window.confirm("Supprimer ce médecin ?")) return;
-    try {
-      await api.delete(`/admin/deletemedecin?id=${id}`);
-      fetchMedecins();
-    } catch {
-      alert("❌ Erreur suppression médecin");
-    }
-  };
+  const deleteMedecin = async (id) => { if (!window.confirm("Supprimer ce médecin ?")) return; try { await api.delete(`/admin/deletemedecin/${id}`); fetchMedecins(); } catch (err) { console.error(err); } };
 
-  // ===============================
-  // 👥 CRUD PATIENTS
-  // ===============================
+  // Création, update, delete Patient
   const createPatient = async () => {
+    if (!newPatient.name || !newPatient.email || !newPatient.password) return alert("⚠️ Tous les champs sont obligatoires");
     try {
       setLoading(true);
       await api.post("/admin/createpatient", newPatient);
-      fetchPatients();
       setNewPatient({ name: "", email: "", password: "" });
-      alert("✅ Patient créé avec succès !");
-    } catch (err) {
-      alert("❌ Erreur création patient");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updatePatient = async (id, name, email) => {
-    try {
-      await api.put(`/admin/updatepatient?id=${id}`, { name, email });
       fetchPatients();
-    } catch {
-      alert("❌ Erreur mise à jour patient");
-    }
+      alert("✅ Patient créé !");
+    } catch (err) { console.error(err); alert("❌ Erreur"); } finally { setLoading(false); }
   };
 
-  const deletePatient = async (id) => {
-    if (!window.confirm("Supprimer ce patient ?")) return;
-    try {
-      await api.delete(`/admin/deletepatient?id=${id}`);
-      fetchPatients();
-    } catch {
-      alert("❌ Erreur suppression patient");
-    }
-  };
+  const updatePatient = async (id, name, email) => { if (!name || !email) return; try { await api.put(`/admin/updatepatient/${id}`, { name, email }); fetchPatients(); } catch (err) { console.error(err); } };
+  const deletePatient = async (id) => { if (!window.confirm("Supprimer ce patient ?")) return; try { await api.delete(`/admin/deletepatient/${id}`); fetchPatients(); } catch (err) { console.error(err); } };
 
-  // ===============================
-  // 🖥️ AFFICHAGE
-  // ===============================
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>🏠 Tableau de bord Administrateur</h1>
+    <div style={{ padding: 20 }}>
+      <h1>🏠 Dashboard Admin</h1>
 
       {admin && (
-        <div style={{ background: "#f2f2f2", padding: "10px", borderRadius: "8px" }}>
+        <div style={{ background: "#f2f2f2", padding: 10, borderRadius: 8 }}>
           <h2>👤 Profil Admin</h2>
-          <p><b>Nom :</b> {admin.name}</p>
-          <p><b>Email :</b> {admin.email}</p>
+          <p><b>Nom:</b> {admin.name}</p>
+          <p><b>Email:</b> {admin.email}</p>
         </div>
       )}
 
-      <hr />
-
-      {/* Gestion Médecins */}
       <section>
-        <h2>🩺 Gestion des Médecins</h2>
-        <input
-          type="text"
-          placeholder="Nom"
-          value={newMedecin.name}
-          onChange={(e) => setNewMedecin({ ...newMedecin, name: e.target.value })}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={newMedecin.email}
-          onChange={(e) => setNewMedecin({ ...newMedecin, email: e.target.value })}
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={newMedecin.password}
-          onChange={(e) => setNewMedecin({ ...newMedecin, password: e.target.value })}
-        />
+        <h2>🩺 Médecins</h2>
+        <input placeholder="Nom" value={newMedecin.name} onChange={e => setNewMedecin({...newMedecin, name:e.target.value})} />
+        <input placeholder="Email" value={newMedecin.email} onChange={e => setNewMedecin({...newMedecin, email:e.target.value})} />
+        <input type="password" placeholder="Mot de passe" value={newMedecin.password} onChange={e => setNewMedecin({...newMedecin, password:e.target.value})} />
         <button onClick={createMedecin} disabled={loading}>➕ Ajouter Médecin</button>
-
-        <ul>
-          {medecins.map((m) => (
-            <li key={m.id}>
-              <b>{m.name}</b> ({m.email})
-              <button onClick={() => deleteMedecin(m.id)}>🗑️ Supprimer</button>
-              <button
-                onClick={() => {
-                  const newName = prompt("Nouveau nom :", m.name);
-                  const newEmail = prompt("Nouvel email :", m.email);
-                  if (newName && newEmail) updateMedecin(m.id, newName, newEmail);
-                }}
-              >
-                ✏️ Modifier
-              </button>
-            </li>
-          ))}
-        </ul>
+        <table border="1" cellPadding="5">
+          <thead><tr><th>Nom</th><th>Email</th><th>Actions</th></tr></thead>
+          <tbody>
+            {medecins.map(m => <tr key={m.id}><td>{m.name}</td><td>{m.email}</td>
+              <td>
+                <button onClick={()=>deleteMedecin(m.id)}>🗑️</button>
+                <button onClick={()=>{
+                  const newName=prompt("Nom", m.name);
+                  const newEmail=prompt("Email", m.email);
+                  updateMedecin(m.id, newName, newEmail);
+                }}>✏️</button>
+              </td>
+            </tr>)}
+          </tbody>
+        </table>
       </section>
 
-      <hr />
-
-      {/* Gestion Patients */}
       <section>
-        <h2>👥 Gestion des Patients</h2>
-        <input
-          type="text"
-          placeholder="Nom"
-          value={newPatient.name}
-          onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={newPatient.email}
-          onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={newPatient.password}
-          onChange={(e) => setNewPatient({ ...newPatient, password: e.target.value })}
-        />
+        <h2>👥 Patients</h2>
+        <input placeholder="Nom" value={newPatient.name} onChange={e => setNewPatient({...newPatient, name:e.target.value})} />
+        <input placeholder="Email" value={newPatient.email} onChange={e => setNewPatient({...newPatient, email:e.target.value})} />
+        <input type="password" placeholder="Mot de passe" value={newPatient.password} onChange={e => setNewPatient({...newPatient, password:e.target.value})} />
         <button onClick={createPatient} disabled={loading}>➕ Ajouter Patient</button>
-
-        <ul>
-          {patients.map((p) => (
-            <li key={p.id}>
-              <b>{p.name}</b> ({p.email})
-              <button onClick={() => deletePatient(p.id)}>🗑️ Supprimer</button>
-              <button
-                onClick={() => {
-                  const newName = prompt("Nouveau nom :", p.name);
-                  const newEmail = prompt("Nouvel email :", p.email);
-                  if (newName && newEmail) updatePatient(p.id, newName, newEmail);
-                }}
-              >
-                ✏️ Modifier
-              </button>
-            </li>
-          ))}
-        </ul>
+        <table border="1" cellPadding="5">
+          <thead><tr><th>Nom</th><th>Email</th><th>Actions</th></tr></thead>
+          <tbody>
+            {patients.map(p => <tr key={p.id}><td>{p.name}</td><td>{p.email}</td>
+              <td>
+                <button onClick={()=>deletePatient(p.id)}>🗑️</button>
+                <button onClick={()=>{
+                  const newName=prompt("Nom", p.name);
+                  const newEmail=prompt("Email", p.email);
+                  updatePatient(p.id, newName, newEmail);
+                }}>✏️</button>
+              </td>
+            </tr>)}
+          </tbody>
+        </table>
       </section>
     </div>
   );

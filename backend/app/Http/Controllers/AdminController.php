@@ -9,21 +9,28 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    
+    // 🔹 Profil admin
     public function profile(Request $request)
     {
         $admin = $request->user()->load('roles');
         return response()->json($admin);
     }
 
-   
-    public function getMedecins()
-    {
-        $medecins = User::role('medecin')->get(); 
-        return response()->json($medecins);
-    }
+    // =========================
+    // MÉDECINS
+    // =========================
 
- 
+    // 🔹 Récupérer tous les médecins
+   public function getMedecins()
+{
+    $medecins = User::whereHas('roles', function ($query) {
+    $query->where('name', 'medecin');
+})->get();
+
+    return response()->json($medecins);
+}
+
+    // 🔹 Créer médecin
     public function createMedecin(Request $request)
     {
         $request->validate([
@@ -38,13 +45,12 @@ class AdminController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-       
-        $user->assignRole('medecin');
+        $user->addRole('medecin');
 
         return response()->json(['message' => 'Médecin créé avec succès', 'user' => $user]);
     }
 
-    // 🟢 UPDATE médecin
+    // 🔹 Mettre à jour médecin
     public function updateMedecin(Request $request, $id)
     {
         $medecin = User::findOrFail($id);
@@ -56,7 +62,7 @@ class AdminController extends Controller
         return response()->json(['message' => 'Médecin mis à jour', 'user' => $medecin]);
     }
 
-    // 🟢 DELETE médecin
+    // 🔹 Supprimer médecin
     public function deleteMedecin($id)
     {
         $medecin = User::findOrFail($id);
@@ -64,18 +70,21 @@ class AdminController extends Controller
         return response()->json(['message' => 'Médecin supprimé']);
     }
 
-    // ==========================================================
-    // 👥 PATIENTS
-    // ==========================================================
+    // =========================
+    // PATIENTS
+    // =========================
 
-    // 🟢 GET tous les patients
+    // 🔹 Récupérer tous les patients
     public function getPatients()
     {
-        $patients = User::role('patient')->get(); // ✅ simplifié aussi
+        $patients = User::whereHas('roles', function ($query) {
+    $query->where('name', 'patient');
+})->get();
+
         return response()->json($patients);
     }
 
-    // 🟢 CREATE patient
+    // 🔹 Créer patient
     public function createPatient(Request $request)
     {
         $request->validate([
@@ -90,13 +99,12 @@ class AdminController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // ✅ Spatie
-        $user->assignRole('patient');
+        $user->addRole('patient');
 
         return response()->json(['message' => 'Patient créé avec succès', 'user' => $user]);
     }
 
-    // 🟢 UPDATE patient
+    // 🔹 Mettre à jour patient
     public function updatePatient(Request $request, $id)
     {
         $patient = User::findOrFail($id);
@@ -108,7 +116,7 @@ class AdminController extends Controller
         return response()->json(['message' => 'Patient mis à jour', 'user' => $patient]);
     }
 
-    // 🟢 DELETE patient
+    // 🔹 Supprimer patient
     public function deletePatient($id)
     {
         $patient = User::findOrFail($id);
