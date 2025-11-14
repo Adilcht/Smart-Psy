@@ -11,8 +11,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Login />} />
+        <Route path="/Register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
 
         
         <Route path="/dashboard-admin" element={<DashboardAdmin />} />
